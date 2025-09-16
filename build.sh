@@ -19,7 +19,7 @@ zcomp() {
     llvmTriple="$3"
 
     outpath="out/$llvmTriple"
-    result="$outpath/npscript$ext"
+    result="$outpath/$APPNAME$ext"
     
     nim c \
         -d:release \
