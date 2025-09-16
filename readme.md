@@ -5,6 +5,14 @@ Basically a reverse hex viewer.
 
 This is a successor to [Bytec](https://github.com/voidwyrm-2/bytec).
 
+## Example
+
+```sh
+cat example.bitn
+biten example.bitn
+xxd example.bin
+```
+
 ## Installation
 
 ### Prebuilt binaries
