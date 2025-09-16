@@ -1,7 +1,7 @@
 # Package
 
 version       = "1.0.0"
-author        = "Radioactivity"
+author        = "Nuclear Pasta"
 description   = "A utility for creating raw byte files"
 license       = "MIT"
 srcDir        = "src"
