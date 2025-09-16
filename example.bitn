@@ -1,0 +1,16 @@
+# Various integers
+10 20 30 40 50
+-10 -20 -30 -40 -50
+b0 b1 b10 b100 b1000
+o10 o20 o30 o40 o50
+x10 x20 x30 x40 x50
+
+# Loops
+(5) "abcd"
+(10) 10
+(15) (30) "I am all I am"
+
+# Strings
+"hello hello let me tell you what it's like to be a zero zero"
+"I've been dancing on top of cars"
+"\e[30m\e[47mblack bird, black moon, black sky, black light, black, eveything black\e[0m"
