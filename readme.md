@@ -1,6 +1,7 @@
 # Biten
 
-A utility for creating raw byte files.
+A utility for creating files based on byte specifications.  
+Basically a reverse hex viewer.
 
 This is a successor to [Bytec](https://github.com/voidwyrm-2/bytec).
 
