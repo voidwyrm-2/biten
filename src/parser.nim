@@ -3,18 +3,32 @@ import std/strformat
 import lexer
 
 
+func findMinimumBits(n: uint64): uint8 =
+  template highn(t: typedesc): uint64 =
+    uint64(high(t))
+
+  if n < highn(uint8):
+    8
+  elif n < highn(uint16):
+    16
+  elif n < highn(uint32):
+    32
+  else:
+    64
+
+
 type
   NodeType* = enum
     ntInteger,
     ntString,
     ntLoop
-  
+
   Node* = ref object
     case typ: NodeType
     of ntInteger:
       negative*: bool
       int*: ptr Token
-      bits*: int8 = -1
+      bits*: uint8 = 0
     of ntString:
       str*: ptr Token
     of ntLoop:
@@ -42,7 +56,7 @@ proc `$`*(self: Node): string =
   let body =
     case self.typ
     of ntInteger:
-      fmt"{self.negative} {self.int[].lit}"
+      fmt"{self.negative} {self.int[].lit} {self.bits}"
     of ntString:
       fmt"{self.str[].lit}"
     of ntLoop:
@@ -87,7 +101,7 @@ proc parseLoop(self: Parser, anchor: ptr Token): Node =
 proc parseTok*(self: Parser, tok: ptr Token): Node =
   case tok[].typ
   of ttInteger:
-    result = Node(typ: ntInteger, int: tok)
+    result = Node(typ: ntInteger, int: tok, bits: findMinimumBits(tok.n))
     inc self.idx
   of ttString:
     result = Node(typ: ntString, str: tok)

@@ -7,10 +7,12 @@ import
 type
   Generator = ref object
     w: File
+    debug: bool
 
-func newGenerator*(writer: File): Generator =
+func newGenerator*(writer: File, debug: bool): Generator =
   new result
   result.w = writer
+  result.debug = debug
 
 proc bytesError(self: Generator, node: Node, written, expected: int) =
   node.tok[].errf(fmt"Incomplete writing: {written} bytes written, but {expected} bytes were expected")
@@ -28,18 +30,21 @@ proc gen(self: Generator, node: Node) =
       hasValue = false
       buf: seq[uint8]
 
-    for i in 0..<8:
-      let b = cast[ptr uint8](cast[uint](addr n) + uint(i) * uint(sizeof(pointer)))[]
+    for i in (when cpuEndian == littleEndian: countdown(7, 0, 1) else: countup(0, 7, 1)):
+      let b = cast[ptr uint8](cast[uint](addr n) + uint(i))[]
       if b > 0 or hasValue:
         inc bytes
         hasValue = true
         buf.add(b)
 
+    if self.debug:
+      echo fmt"{node} -> {buf}"
+
     let written = self.w.writeBytes(buf, 0, buf.len)
     if written < bytes:
       self.bytesError(node, written, buf.len)
 
-    if not hasValue:
+    if buf.len == 0:
       let written = self.w.writeBytes([uint8(0)], 0, 0)
       if written < bytes:
         self.bytesError(node, written, 1)

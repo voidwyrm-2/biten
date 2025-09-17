@@ -1,6 +1,6 @@
 # Package
 
-version       = "1.0.0"
+version       = "1.1.0"
 author        = "Nuclear Pasta"
 description   = "A utility for creating raw byte files"
 license       = "MIT"
