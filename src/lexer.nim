@@ -7,7 +7,7 @@ import general
 
 
 const
-  digitsB10 = '0'..'9'
+  digitsDec = '0'..'9'
   digitsBin = '0'..'2'
   digitsOct = '0'..'8'
   digitsHex = {'0'..'9', 'a'..'f', 'A'..'F'}
@@ -15,10 +15,17 @@ const
 
 type
   DigitBase = enum
-    dt10,
+    dtDec,
     dtBin,
     dtOct,
     dtHex
+
+  IntBits* = enum
+    ib8,
+    ib16,
+    ib24,
+    ib32,
+    ib64
 
   TokenType* = enum
     ttInteger,
@@ -31,8 +38,9 @@ type
     ln, col: uint
     case typ: TokenType
     of ttInteger:
-      canBeNegative*: bool
       n*: uint64
+      canBeNegative*: bool
+      bits*: IntBits
     of ttString:
       s*: string
     else:
@@ -67,7 +75,7 @@ func errf*(self: Token, msg: string) =
 func `$`*(self: Token): string =
   let str =
     if self.typ == ttInteger:
-      fmt"{self.typ} {self.lit} {self.canBeNegative} {self.ln} {self.col}"
+      fmt"{self.typ} {self.lit} {self.canBeNegative} {($self.bits)[2..^1]} {self.ln} {self.col}"
     else:
       fmt"{self.typ} `{self.lit}` {self.ln} {self.col}"
 
@@ -118,15 +126,15 @@ proc collectInteger(self: Lexer): Token =
   result.col = self.col
 
   var
-    base = dt10
-    buf: seq[char]
+    base = dtDec
+    buf = newStringOfCap(10)
 
   template baseBody(dt: DigitBase, chset: untyped): untyped =
     if buf.len() > 0 or self.next notin chset:
       break
 
-    buf.add('0')
-    buf.add(ch)
+    buf &= '0'
+    buf &= ch
     base = dt
 
   while not self.eof:
@@ -142,8 +150,8 @@ proc collectInteger(self: Lexer): Token =
     else:
       var valid =
         case base
-        of dt10:
-           ch in digitsB10
+        of dtDec:
+           ch in digitsDec
         of dtBin:
           ch in digitsBin
         of dtOct:
@@ -152,7 +160,7 @@ proc collectInteger(self: Lexer): Token =
           ch in digitsHex
 
       if valid or (ch == '_' and (buf.len() == 0 or buf[^1] != '_')):
-        buf.add(ch)
+        buf &= ch
         self.adv()
         continue
       
@@ -160,18 +168,64 @@ proc collectInteger(self: Lexer): Token =
 
     self.adv()
 
-  let lit = cast[string](buf)
-
   case base
-  of dt10:
-    result.n = parseUInt(lit)
+  of dtDec:
+    result.n = parseUInt(buf)
     result.canBeNegative = true
   of dtBin:
-    result.n = fromBin[uint64](lit)
+    result.n = fromBin[uint64](buf)
   of dtOct:
-    result.n = fromOct[uint64](lit)
+    result.n = fromOct[uint64](buf)
   of dtHex:
-    result.n = fromHex[uint64](lit)
+    result.n = fromHex[uint64](buf)
+
+  if self.cur == '`':
+    let anchor = self.tok(ttHyphen)
+
+    self.adv()
+
+    var bitBuf = newStringOfCap(3)
+
+    while not self.eof and self.cur in digitsDec:
+      bitBuf &= self.cur
+      self.adv()
+
+    var high: uint64
+
+    case bitBuf
+    of "8":
+      result.bits = ib8
+      high = high(uint8).uint64
+    of "16":
+      result.bits = ib16
+      high = high(uint16).uint64
+    of "24":
+      result.bits = ib24
+      high = 16777215
+    of "32":
+      result.bits = ib32
+      high = high(uint32).uint64
+    of "64":
+      result.bits = ib64
+      high = high(uint64)
+    else:
+      anchor.errf(fmt"'{bitBuf}' is not a valid bit size, only '8', '16', '24', '32', or '64' are valid")
+
+    if result.n > high:
+      result.errf(fmt"Integer {result.n} is not small enough to fit inside of {($result.bits)[2..^1]} bits")
+  else:
+    template highn(t: typedesc): uint64 =
+      high(t).uint64
+
+    result.bits =
+      if result.n < highn(uint8):
+        ib8
+      elif result.n < highn(uint16):
+        ib16
+      elif result.n < highn(uint32):
+        ib32
+      else:
+        ib64
 
 proc collectString(self: Lexer): Token =
   result = Token(typ: ttString)

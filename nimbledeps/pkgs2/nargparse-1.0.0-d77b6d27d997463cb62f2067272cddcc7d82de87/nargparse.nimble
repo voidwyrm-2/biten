@@ -1,15 +1,12 @@
 # Package
 
-version       = "1.2.0"
+version       = "1.0.0"
 author        = "Nuclear Pasta"
-description   = "A utility for creating raw byte files"
+description   = "An console argument parsing libary"
 license       = "MIT"
 srcDir        = "src"
-bin           = @["biten"]
 
 
 # Dependencies
 
 requires "nim >= 2.2.4"
-
-requires "nargparse"
