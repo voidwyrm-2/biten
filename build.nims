@@ -66,9 +66,6 @@ proc checkEnv(self: Cmd) =
     self.defines = def.split(' ').toHashSet()
 
 proc addExtras(self: Cmd) =
-  if "nohttp" notin self.defines:
-    self.addd ssl
-
   self.addp "nargparse-1.0.0-d77b6d27d997463cb62f2067272cddcc7d82de87"
 
 proc run(self: Cmd) =

@@ -218,11 +218,11 @@ proc collectInteger(self: Lexer): Token =
       high(t).uint64
 
     result.bits =
-      if result.n < highn(uint8):
+      if result.n <= highn(uint8):
         ib8
-      elif result.n < highn(uint16):
+      elif result.n <= highn(uint16):
         ib16
-      elif result.n < highn(uint32):
+      elif result.n <= highn(uint32):
         ib32
       else:
         ib64
